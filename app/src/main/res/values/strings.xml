@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Poster</string>
+    <string name="didi">滴滴</string>
+    <string name="dida">嘀嗒</string>
+
+    <array name="arr">
+        <item>@string/dida</item>
+        <item>@string/didi</item>
+    </array>
+</resources>
