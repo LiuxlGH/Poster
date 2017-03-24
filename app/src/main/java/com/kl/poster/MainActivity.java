@@ -1,10 +1,15 @@
 package com.kl.poster;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.provider.Settings;
@@ -27,6 +32,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     SharedPreferences sp;
+    SpeechControl speechControl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +43,26 @@ public class MainActivity extends AppCompatActivity {
                 Activity.MODE_PRIVATE);
 
         SpeechControl.initTTS(this);
+        FloatWindowControl.init(this);
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            if(!Settings.canDrawOverlays(this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                startActivity(intent);
+                return;
+            } else {
+                //绘ui代码, 这里说明6.0系统已经有权限了
+            }
+        } else {
+            //绘ui代码,这里android6.0以下的系统直接绘出即可
+        }
+
+        PackageManager pm = getPackageManager();
+        pm.setComponentEnabledSetting(new ComponentName(this,NotificationService.class),
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,PackageManager.DONT_KILL_APP);
+        pm.setComponentEnabledSetting(new ComponentName(this,NotificationService.class),
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,PackageManager.DONT_KILL_APP);
+
     }
 
     /**
@@ -48,18 +74,6 @@ public class MainActivity extends AppCompatActivity {
 //        address = getLocalIPAddress();
 //        new BroadCastUdp(number).start();
         updateButton();
-
-//        if (Build.VERSION.SDK_INT >= 23) {
-//            if(!Settings.canDrawOverlays(this)) {
-//                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-//                startActivity(intent);
-//                return;
-//            } else {
-//                //绘ui代码, 这里说明6.0系统已经有权限了
-//            }
-//        } else {
-//            //绘ui代码,这里android6.0以下的系统直接绘出即可
-//        }
     }
 
     private void updateButton() {
@@ -98,10 +112,23 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View v){
         switch (v.getId()){
             case R.id.btnTest:
-                String text = "你好，小朋友";
-                Sender.broadcast(text);
-                FloatWindowControl.showInTopWindow(this,text);
-                SpeechControl.speak(text);
+                String text = "你好，小朋友, 好久不见，你已经长大了";
+//                Sender.broadcast(text);
+//                FloatWindowControl.showInTopWindow(text);
+//                SpeechControl.speak(text);
+
+                NotificationManager  manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                Notification.Builder builder = new Notification.Builder(this);
+                builder.setAutoCancel(true);
+                builder.setSmallIcon(R.mipmap.ic_launcher);
+                builder.setContentTitle("滴滴");
+                builder.setContentText(text);
+                builder.setDefaults(Notification.DEFAULT_SOUND| Notification.DEFAULT_VIBRATE);
+                Intent intent0 = new Intent(this, MainActivity2.class);
+                PendingIntent pIntent = PendingIntent.getActivity(this, 1, intent0,PendingIntent.FLAG_ONE_SHOT);
+                builder.setContentIntent(pIntent);
+                manager.notify(0, builder.build());
+
                 break;
             case R.id.btnStartBroadcast:
                 sp.edit().putBoolean("broadcast",true).commit();
@@ -111,10 +138,13 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btnVoiceOff:
                 sp.edit().putBoolean("voice",false).commit();
-                SpeechControl.shutdown();
+                speechControl.isSpeakCmd=false;
+                speechControl.shutdown();
                 break;
             case R.id.btnVoiceOn:
                 sp.edit().putBoolean("voice",true).commit();
+                speechControl.isSpeakCmd = true;
+                speechControl.initTTS(this);
                 break;
             case R.id.btnFloatWindowOff:
                 sp.edit().putBoolean("popup",true).commit();

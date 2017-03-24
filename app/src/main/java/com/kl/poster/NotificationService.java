@@ -20,7 +20,6 @@ import java.util.List;
 
 public class NotificationService extends NotificationListenerService {
 
-
     final String TAG = "KL";
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
@@ -45,6 +44,9 @@ public class NotificationService extends NotificationListenerService {
                 }
 
 //                FloatWindowControl.showInTopWindow(this,text);
+                Intent floatIntent = new Intent(this,FloatWindowService.class);
+                floatIntent.putExtra("txt",text);
+                startService(floatIntent);
                 SpeechControl.speak(text);
                 Sender.broadcast(title+":: "+text);
                 break;
@@ -70,5 +72,13 @@ public class NotificationService extends NotificationListenerService {
 
         Log.d(TAG, "notification removed.");
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopService(new
+                Intent(this,
+                FloatWindowService.class));
     }
 }

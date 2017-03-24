@@ -1,9 +1,12 @@
 package com.kl.poster;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.TextView;
 
 /**
@@ -11,15 +14,23 @@ import android.widget.TextView;
  */
 
 public class FloatWindowControl {
-
+    static WindowManager wm;
+    static TextView txt;
+    static boolean isTxtUpdated = false;
+    static Context context;
 
     public static boolean isPopup = false;
-    public static void showInTopWindow(Context context, String msg)   {
-        if(!isPopup){
+
+    public static void init(Activity activity){
+        context = activity.getApplicationContext();
+    }
+
+    public static void showInTopWindow(Context context,String msg) {
+        if (!isPopup) {
             return;
         }
 
-        WindowManager wm = (WindowManager) context.getApplicationContext().getSystemService(
+        wm = (WindowManager) context.getApplicationContext().getSystemService(
                 Context.WINDOW_SERVICE);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
 //
@@ -76,22 +87,64 @@ public class FloatWindowControl {
 
 
         params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, 0, 0,
+                WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT, 0, 0,
                 PixelFormat.TRANSPARENT);
         params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
         params.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-        params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 100;
-        params.y = 300;
+        params.gravity = Gravity.TOP;
+//        params.x = 100;
+//        params.y = 300;
 
-        TextView txt = new TextView(context);
-        txt.setText(msg);
-        txt.setTextColor(context.getResources().getColor(android.R.color.white));
-        txt.setBackgroundColor(context.getResources().getColor(android.R.color.black));
-        wm.addView(txt, params);
+        isTxtUpdated = false;
+        if (txt != null) {
+            txt.setText(msg);
+            isTxtUpdated = true;
+        } else {
+            txt = new TextView(context);
+            txt.setText(msg);
+            txt.setPadding(20, 30, 30, 20);
+            txt.setTextColor(context.getResources().getColor(android.R.color.white));
+            txt.getPaint().setFakeBoldText(true);
+            txt.setBackgroundColor(context.getResources().getColor(android.R.color.darker_gray));
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f,
+                    Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, -1.0f,
+                    Animation.RELATIVE_TO_SELF, 0f);
+            animation.setDuration(500);
+            txt.startAnimation(animation);
+            wm.addView(txt, params);
 
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    int count = 0;
+                    while (count < 6) {
+                        if (isTxtUpdated) {
+                            count = 0;
+                        }
+                        try {
+                            Thread.sleep(500);
+                            count++;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (txt == null) {
+                        return;
+                    }
+//                    context.runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            wm.removeView(txt);
+//                            txt = null;
+//                        }
+//                    });
+                }
+            }).start();
+        }
     }
 
 }

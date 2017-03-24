@@ -24,9 +24,8 @@ class SpeechControl {
         if(!isSpeakCmd){
             return;
         }
-//        textToSpeech.setPitch(1.0f);// 设置音调，值越大声音越尖（女生），值越小则变成男声,1.0是常规
-        textToSpeech.speak(msg,
-                TextToSpeech.QUEUE_FLUSH, null);
+        textToSpeech.setPitch(1.0f);// 设置音调，值越大声音越尖（女生），值越小则变成男声,1.0是常规
+        textToSpeech.speak(msg, TextToSpeech.QUEUE_FLUSH, null);
 
     }
 
@@ -40,18 +39,16 @@ class SpeechControl {
          */
         @Override
         public void onInit(int status) {
-            if (status == TextToSpeech.SUCCESS) {
-                int result = textToSpeech.setLanguage(Locale.US);
-                if (result == TextToSpeech.LANG_MISSING_DATA
-                        || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                }
+            if(status != TextToSpeech.ERROR) {
+                textToSpeech.setLanguage(Locale.CHINA);
             }
         }
     };
 
-    public static void shutdown() {
+    public void shutdown() {
         textToSpeech.stop(); // 不管是否正在朗读TTS都被打断
         textToSpeech.shutdown(); // 关闭，释放资源
+        textToSpeech= null;
     }
 
 }
