@@ -24,7 +24,8 @@ class SpeechControl {
         if(!isSpeakCmd){
             return;
         }
-        textToSpeech.setPitch(1.0f);// 设置音调，值越大声音越尖（女生），值越小则变成男声,1.0是常规
+//        textToSpeech.setPitch(3.0f);// 设置音调，值越大声音越尖（女生），值越小则变成男声,1.0是常规
+        textToSpeech.setSpeechRate(1.5f);
         textToSpeech.speak(msg, TextToSpeech.QUEUE_FLUSH, null);
 
     }
@@ -45,10 +46,16 @@ class SpeechControl {
         }
     };
 
-    public void shutdown() {
-        textToSpeech.stop(); // 不管是否正在朗读TTS都被打断
-        textToSpeech.shutdown(); // 关闭，释放资源
-        textToSpeech= null;
+    public static void shutdown() {
+        if(textToSpeech!=null) {
+            textToSpeech.stop(); // 不管是否正在朗读TTS都被打断
+            textToSpeech.shutdown(); // 关闭，释放资源
+            textToSpeech = null;
+        }
+    }
+
+    public static void stop(){
+        textToSpeech.stop();
     }
 
 }

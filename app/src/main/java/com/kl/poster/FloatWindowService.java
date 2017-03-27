@@ -3,6 +3,7 @@ package com.kl.poster;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.os.Handler;
 import android.os.IBinder;
@@ -10,6 +11,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -51,7 +53,7 @@ public class FloatWindowService extends Service {
         // TODO Auto-generated method stub
         super.onStart(intent, startId);
 
-        if (!isPopup) {
+        if (!SharedPreferenceKit.getInstance().getFloatWindowCMD()) {
             return;
         }
         msg=intent.getStringExtra("txt");
@@ -84,35 +86,14 @@ public class FloatWindowService extends Service {
             animation.setDuration(500);
             txt.startAnimation(animation);
             wm.addView(txt, params);
-            new Thread(new Runnable() {
+            txt.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void run() {
-
-                    int count = 0;
-                    while (count < 6) {
-                        if (isTxtUpdated) {
-                            count = 0;
-                        }
-                        try {
-                            Thread.sleep(500);
-                            count++;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (txt == null) {
-                        return;
-                    }
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            wm.removeView(txt);
-                            txt = null;
-                        }
-                    });
+                public void onClick(View view) {
+                    wm.removeView(txt);
+                    txt = null;
+                    SpeechControl.stop();
                 }
-            }).start();
+            });
         }
 
         viewHide = false;

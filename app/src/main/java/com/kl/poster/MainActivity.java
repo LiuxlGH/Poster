@@ -31,7 +31,6 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    SharedPreferences sp;
     SpeechControl speechControl;
 
     @Override
@@ -39,9 +38,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sp= getSharedPreferences("POSTER",
-                Activity.MODE_PRIVATE);
-
+        SharedPreferenceKit.getInstance().initSharedPreferences(this);
         SpeechControl.initTTS(this);
         FloatWindowControl.init(this);
 
@@ -77,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateButton() {
-        boolean isBroadcast = sp.getBoolean("broadcast",true);
+        SharedPreferenceKit kit = SharedPreferenceKit.getInstance();
+        boolean isBroadcast = kit.getBroadcastCMD();
         if(isBroadcast){
             findViewById(R.id.btnStartBroadcast).setVisibility(View.GONE);
             findViewById(R.id.btnStopBroadcast).setVisibility(View.VISIBLE);
@@ -87,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         }
         Sender.isBroadcast = isBroadcast;
 
-        boolean isVoiceOn = sp.getBoolean("voice",true);
+        boolean isVoiceOn = kit.getVoiceCMD();
         if(isVoiceOn){
             findViewById(R.id.btnVoiceOff).setVisibility(View.VISIBLE);
             findViewById(R.id.btnVoiceOn).setVisibility(View.GONE);
@@ -97,12 +95,12 @@ public class MainActivity extends AppCompatActivity {
         }
         SpeechControl.isSpeakCmd = isVoiceOn;
 
-        boolean isPopUp = sp.getBoolean("popup",true);
+        boolean isPopUp = kit.getFloatWindowCMD();
         if(isPopUp){
             findViewById(R.id.btnFloatWindowOff).setVisibility(View.VISIBLE);
             findViewById(R.id.btnFloatWindowOn).setVisibility(View.GONE);
         }else{
-            findViewById(R.id.btnVoiceOn).setVisibility(View.VISIBLE);
+            findViewById(R.id.btnFloatWindowOn).setVisibility(View.VISIBLE);
             findViewById(R.id.btnFloatWindowOff).setVisibility(View.GONE);
         }
         FloatWindowControl.isPopup=isPopUp;
@@ -110,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClick(View v){
+        SharedPreferenceKit kit = SharedPreferenceKit.getInstance();
         switch (v.getId()){
             case R.id.btnTest:
                 String text = "你好，小朋友, 好久不见，你已经长大了";
@@ -131,26 +130,26 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             case R.id.btnStartBroadcast:
-                sp.edit().putBoolean("broadcast",true).commit();
+                kit.saveBroadcastCMD(true);
                 break;
             case R.id.btnStopBroadcast:
-                sp.edit().putBoolean("broadcast",false).commit();
+                kit.saveBroadcastCMD(false);
                 break;
             case R.id.btnVoiceOff:
-                sp.edit().putBoolean("voice",false).commit();
-                speechControl.isSpeakCmd=false;
-                speechControl.shutdown();
+                kit.saveVoiceCMD(false);
+                SpeechControl.isSpeakCmd=false;
+                SpeechControl.shutdown();
                 break;
             case R.id.btnVoiceOn:
-                sp.edit().putBoolean("voice",true).commit();
-                speechControl.isSpeakCmd = true;
-                speechControl.initTTS(this);
+                kit.saveVoiceCMD(true);
+                SpeechControl.isSpeakCmd = true;
+                SpeechControl.initTTS(this);
                 break;
             case R.id.btnFloatWindowOff:
-                sp.edit().putBoolean("popup",true).commit();
+                kit.saveFloatWindowCMD(false);
                 break;
             case R.id.btnFloatWindowOn:
-                sp.edit().putBoolean("popup",true).commit();
+                kit.saveFloatWindowCMD(true);
                 break;
             case R.id.btnOpenPermission:
                 Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
