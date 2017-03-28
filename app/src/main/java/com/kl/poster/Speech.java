@@ -5,6 +5,7 @@ import android.speech.tts.TextToSpeech;
 import android.widget.Toast;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by 10170153 on 3/20/2017.
@@ -48,9 +49,13 @@ class SpeechControl {
 
     public static void shutdown() {
         if(textToSpeech!=null) {
-            textToSpeech.stop(); // 不管是否正在朗读TTS都被打断
-            textToSpeech.shutdown(); // 关闭，释放资源
-            textToSpeech = null;
+            try {
+                textToSpeech.stop(); // 不管是否正在朗读TTS都被打断
+                textToSpeech.shutdown(); // 关闭，释放资源
+                textToSpeech = null;
+            }catch (Exception ex){
+                textToSpeech = null;
+            }
         }
     }
 
